@@ -10,7 +10,7 @@
     "url": "git+https://github.com/allanfish/koa-cas.git"
   },
   "engines": {
-    "node": ">=6.0.0"
+    "node": ">=8.9.0"
   },
   "scripts": {
     "start": "node ./example",
@@ -20,10 +20,12 @@
   "bugs": {
     "url": "https://github.com/allanfish/koa-cas/issues"
   },
-  "maintainers": [{
-    "email": "googleyufei@qq.com",
-    "name": "allanfish"
-  }],
+  "maintainers": [
+    {
+      "email": "googleyufei@qq.com",
+      "name": "allanfish"
+    }
+  ],
   "dependencies": {
     "co": "^4.6.0",
     "deprecate": "^0.1.0",
@@ -34,14 +36,16 @@
   },
   "description": "NodeJS implement of CAS(Central Authentication Service) client.",
   "devDependencies": {
+    "babel-eslint": "^8.0.3",
     "babel-preset-env": "^1.3.2",
     "babel-register": "^6.24.0",
     "babel-runtime": "^6.23.0",
     "chai": "^3.5.0",
     "coveralls": "^2.11.12",
     "ejs": "^2.4.2",
-    "eslint": "3.6.0",
+    "eslint": "^3.6.0",
     "eslint-config-bugly-base": "^11.1.9",
+    "eslint-plugin-import": "^2.8.0",
     "istanbul": "^0.4.4",
     "koa": "^1.4.0",
     "koa-bodyparser": "^2.5.0",

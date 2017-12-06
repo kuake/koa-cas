@@ -49,35 +49,35 @@ const DEFAULT_OPTIONS = {
 };
 
 
-class ConnectCas {
+class ConnectCas{
 
-  constructor(options) {
+  constructor(options){
     /* istanbul ignore if */
-    if (!(this instanceof ConnectCas)) return new ConnectCas(options);
+    if(!(this instanceof ConnectCas)){return new ConnectCas(options);}
 
     this.options = _.merge({}, DEFAULT_OPTIONS, options);
 
     /* istanbul ignore if */
-    if (this.options.ssoff) {
+    if(this.options.ssoff){
       deprecate('options.ssoff is deprecated, use option.slo instead.');
       this.options.slo = this.options.ssoff;
     }
 
-    if (this.options.debug) {
+    if(this.options.debug){
       deprecate('options.debug is deprecated, please control the console output by a custom logger.');
     }
 
     /* istanbul ignore if */
-    if (!this.options.servicePrefix || !this.options.serverPath) throw new Error('Unexpected options.service or options.serverPath!');
+    if(!this.options.servicePrefix || !this.options.serverPath){throw new Error('Unexpected options.service or options.serverPath!');}
 
-    if (this.options.cache && this.options.cache.enable) {
+    if(this.options.cache && this.options.cache.enable){
       this.ptStore = new PTStroe({
         ttl: this.options.cache.ttl,
         logger: this.options.logger,
       });
     }
 
-    if (this.options.renew || this.options.gateway) {
+    if(this.options.renew || this.options.gateway){
       console.warn('options.renew and options.gateway is not implement yet!');
     }
 
@@ -85,27 +85,26 @@ class ConnectCas {
     this.proxyCallbackPathName = (pgtURI.protocol && pgtURI.host) ? pgtURI.pathname : this.options.paths.proxyCallback;
   }
 
-
-  core() {
+  core(){
     const options = this.options;
     const that = this;
-    return function* coreMiddleware(next) {
+    return function * coreMiddleware(next){
       const ctx = this;
-      if (!ctx.sessionStore) throw new Error('You must setup a session store before you can use CAS client!');
-      if (!ctx.session) throw new Error(`Unexpected ctx.session ${ctx.session}`);
+      if(!ctx.sessionStore){throw new Error('You must setup a session store before you can use CAS client!');}
+      if(!ctx.session){throw new Error(`Unexpected ctx.session ${ctx.session}`);}
 
-      if (options.hooks && is.function(options.hooks.before)) {
+      if(options.hooks && is["function"](options.hooks.before)){
         yield options.hooks.before(this, next);
       }
 
       const logger = utils.getLogger(ctx, options);
       let matchedRestletIntegrateRule;
 
-      if (options.restletIntegration) {
-        if (!options.paths.restletIntegration) {
+      if(options.restletIntegration){
+        if(!options.paths.restletIntegration){
           logger.warn('options.restletIntegration is set, but options.paths.restletIntegration is undefined! Maybe you forget to set all your paths.');
-        } else {
-          ctx.clearRestlet = co.wrap(function* () {
+        }else{
+          ctx.clearRestlet = co.wrap(function * (){
             return yield clearRestletTGTs.bind(null, options, logger);
           });
 
@@ -114,10 +113,10 @@ class ConnectCas {
             return ctx.clearRestlet.apply(ctx, Array.from(arguments));
           };
 
-          for (const i in options.restletIntegration) {
-            if (options.restletIntegration[i] &&
-              is.function(options.restletIntegration[i].trigger) &&
-              options.restletIntegration[i].trigger(ctx)) {
+          for(const i in options.restletIntegration){
+            if(options.restletIntegration[i] &&
+              is["function"](options.restletIntegration[i].trigger) &&
+              options.restletIntegration[i].trigger(ctx)){
               matchedRestletIntegrateRule = i;
               break;
             }
@@ -139,29 +138,29 @@ class ConnectCas {
        * @param {Function}  callback
        * @returns {*}
        */
-      ctx.getProxyTicket = co.wrap(function* (targetService, proxyOptions = {}) {
-        if (typeof proxyOptions === 'function') {
+      ctx.getProxyTicket = co.wrap(function * (targetService, proxyOptions = {}){
+        if(typeof proxyOptions === 'function'){
           proxyOptions = { // eslint-disable-line no-param-reassign
             disableCache: false,
           };
-        } else if (typeof proxyOptions === 'boolean') {
+        }else if(typeof proxyOptions === 'boolean'){
           proxyOptions = { // eslint-disable-line no-param-reassign
             disableCache: proxyOptions,
           };
         }
 
         proxyOptions.targetService = targetService;
-        if (!options.paths.proxyCallback) {
+        if(!options.paths.proxyCallback){
           logger.warn('options.paths.proxyCallback is not set, CAS is on non-proxy mode, you should not request a proxy ticket for non-proxy mode!');
           throw new Error('options.paths.proxyCallback is not set, CAS is on non-proxy mode, you should not request a proxy ticket for non-proxy mode!');
         }
 
         let restletIntegrateParams;
-        if (matchedRestletIntegrateRule) {
-          if (is.function(options.restletIntegration[matchedRestletIntegrateRule].params)) {
+        if(matchedRestletIntegrateRule){
+          if(is["function"](options.restletIntegration[matchedRestletIntegrateRule].params)){
             logger.info('Match restlet integration rule and using aync manner, whitch using function to return `object`, to get restlet integration params: ', matchedRestletIntegrateRule);
             restletIntegrateParams = options.restletIntegration[matchedRestletIntegrateRule].params(ctx);
-          } else {
+          }else{
             logger.info('Match restlet integration rule and using default manner, whitch just directly return `object`, to get restlet integration params: ', matchedRestletIntegrateRule);
             restletIntegrateParams = options.restletIntegration[matchedRestletIntegrateRule].params;
           }
@@ -179,20 +178,20 @@ class ConnectCas {
         return ctx.getProxyTicket.apply(ctx, Array.from(arguments));
       };
 
-      const afterHook = options.hooks && is.function(options.hooks.after) ? options.hooks.after.bind(this, ctx, next) : () => Promise.resolve();
-      if (matchedRestletIntegrateRule) {
+      const afterHook = options.hooks && is["function"](options.hooks.after) ? options.hooks.after.bind(this, ctx, next) : () => Promise.resolve();
+      if(matchedRestletIntegrateRule){
         logger.info('Match restlet integration rule: ', matchedRestletIntegrateRule);
         ctx.sessionSave = true; // generate a new session to keep sessionid in cookie
         yield afterHook();
         return yield next;
       }
 
-      if (utils.shouldIgnore(ctx, options)) {
+      if(utils.shouldIgnore(ctx, options)){
         yield afterHook();
         return yield next;
       }
-      if (this.method === 'GET') {
-        switch (this.path) {
+      if(this.method === 'GET'){
+        switch(this.path){
           case options.paths.validate:
             return yield validate(ctx, afterHook, options);
           case that.proxyCallbackPathName:
@@ -200,25 +199,25 @@ class ConnectCas {
           default:
             break;
         }
-      } else if (this.method === 'POST' && this.path === options.paths.validate && options.slo) {
+      }else if(this.method === 'POST' && this.path === options.paths.validate && options.slo){
         return yield slo(ctx, afterHook, options);
       }
       return yield authenticate(ctx, afterHook, next, options);
     };
   }
 
-  logout() {
+  logout(){
     const options = this.options;
 
-    return function* () {
-      if (!this.session) {
+    return function * (){
+      if(!this.session){
         return this.redirect('/');
       }
       // Forget our own login session
 
-      if (this.session.destroy) {
+      if(this.session.destroy){
         yield this.session.destroy();
-      } else {
+      }else{
         // Cookie-based sessions have no destroy()
         this.session = null;
       }
@@ -227,7 +226,7 @@ class ConnectCas {
     };
   }
 
-  getPath(name) {
+  getPath(name){
     return utils.getPath(name, this.options);
   }
 

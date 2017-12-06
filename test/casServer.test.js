@@ -2,51 +2,51 @@ const Koa = require('koa');
 const Router = require('koa-router');
 const supertest = require('supertest');
 const casServerFactory = require('./lib/casServer');
-const {
+const{
   expect,
 } = require('chai');
 const url = require('url');
-const {
+const{
   parseRestletResponse,
 } = require('../lib/getProxyTicketThroughRestletReq');
-const {
+const{
   parseProxyTicketResponse,
 } = require('../lib/getProxyTicket');
-const {
+const{
   parseCasResponse,
 } = require('../lib/validate');
 
 const logger = {
-  info() {},
-  error() {},
+  info(){},
+  error(){},
 };
 
-describe('cas server如预期', function() {
+describe('cas server如预期', function(){
   let server;
   let app;
   let request;
   this.timeout(5000);
 
-  beforeEach(function(done) {
+  beforeEach(function(done){
     app = new Koa();
-    server = app.listen(3004, function(err) {
-      if (err) throw err;
+    server = app.listen(3004, function(err){
+      if(err){throw err;}
       done();
     });
     request = supertest.agent(app.listen());
   });
-  afterEach(function() {
+  afterEach(function(){
     server.close();
     app = null;
     server = null;
   });
 
-  it('访问/cas/login, 啥都不带, 直接响应200', function(done) {
+  it('访问/cas/login, 啥都不带, 直接响应200', function(done){
     casServerFactory(app);
     request.get('/cas/login').expect(200).end(done);
   });
 
-  it('访问/cas/login,带service,当做成功登陆, 设置cookie, 302到service参数的路径, 带上ticket', function(done) {
+  it('访问/cas/login,带service,当做成功登陆, 设置cookie, 302到service参数的路径, 带上ticket', function(done){
     casServerFactory(app);
     const service = 'http://localhost:3002/cas/validate';
     request.get(`/cas/login?service=${encodeURIComponent(service)}`)
@@ -58,7 +58,7 @@ describe('cas server如预期', function() {
       }).end(done);
   });
 
-  it('访问/cas/serviceValidate, 没带ticket, 返回200, xml内authenticationFailure', function(done) {
+  it('访问/cas/serviceValidate, 没带ticket, 返回200, xml内authenticationFailure', function(done){
     casServerFactory(app);
     const service = 'http://localhost:3002/cas/validate';
     request.get(`/cas/servicevalidate?service=${encodeURIComponent(service)}`)
@@ -68,11 +68,11 @@ describe('cas server如预期', function() {
           .then((info) => {
             expect(info).to.deep.equal({});
             done();
-          }).catch(done);
+          })["catch"](done);
       });
   });
 
-  it('访问/cas/serviceValidate, 带ticket, 但是ticket非法, 返回200, xml内authenticationFailure', function(done) {
+  it('访问/cas/serviceValidate, 带ticket, 但是ticket非法, 返回200, xml内authenticationFailure', function(done){
     casServerFactory(app);
     const service = 'http://localhost:3002/cas/validate';
     request.get(`/cas/serviceValidate?service=${encodeURIComponent(service)}&ticket=xxx`)
@@ -82,11 +82,11 @@ describe('cas server如预期', function() {
           .then((info) => {
             expect(info).to.deep.equal({});
             done();
-          }).catch(done);
+          })["catch"](done);
       });
   });
 
-  it('访问/cas/serviceValidate, 带ticket, 但没带service, 返回200, xml内authenticationFailure', function(done) {
+  it('访问/cas/serviceValidate, 带ticket, 但没带service, 返回200, xml内authenticationFailure', function(done){
     casServerFactory(app);
     request.get('/cas/serviceValidate?&ticket=xxx')
       .expect(200)
@@ -95,11 +95,11 @@ describe('cas server如预期', function() {
           .then((info) => {
             expect(info).to.deep.equal({});
             done();
-          }).catch(done);
+          })["catch"](done);
       });
   });
 
-  it('访问/cas/serviceValidate, 带ticket, ticket合法, 无pgtUrl, 直接响应成功xml, 带userId', function(done) {
+  it('访问/cas/serviceValidate, 带ticket, ticket合法, 无pgtUrl, 直接响应成功xml, 带userId', function(done){
     casServerFactory(app);
     const service = 'http://localhost:3002/cas/validate';
     request.get(`/cas/login?service=${encodeURIComponent(service)}`)
@@ -114,12 +114,12 @@ describe('cas server如预期', function() {
             parseCasResponse(res.text, logger).then((info) => {
               expect(info.user).to.not.be.empty;
               done();
-            }).catch(done);
+            })["catch"](done);
           });
       });
   });
 
-  it('访问/cas/serviceValidate, 带ticket, ticket合法, 有pgtUrl, 先调pgtUrl, 传过去pgtIou和pgtId, 然后响应成功xml, 带userId和pgtIou', function(done) {
+  it('访问/cas/serviceValidate, 带ticket, ticket合法, 有pgtUrl, 先调pgtUrl, 传过去pgtIou和pgtId, 然后响应成功xml, 带userId和pgtIou', function(done){
     casServerFactory(app);
 
     // cas client
@@ -128,21 +128,21 @@ describe('cas server如预期', function() {
     const localPort = 3002;
     const appLocal = new Koa();
     const router = new Router();
-    router.get('/cas/proxyCallback', function* () {
+    router.get('/cas/proxyCallback', function * (){
       console.log('/cas/proxyCallback query:', this.query);
-      if (this.query) {
+      if(this.query){
         expect(this.query.pgtIou).to.not.be.empty;
         expect(this.query.pgtId).to.not.be.empty;
         store[this.query.pgtIou] = this.query.pgtId;
         this.body = 'ok';
-      } else {
+      }else{
         this.status = 400;
       }
     });
     appLocal.use(router.routes()).use(router.allowedMethods());
 
     const serverLocal = appLocal.listen(localPort, (err) => {
-      if (err) throw err;
+      if(err){throw err;}
       const service = `${localHost}:${localPort}/cas/validate`;
       const pgtUrl = `${localHost}:${localPort}/cas/proxyCallback`;
 
@@ -161,14 +161,14 @@ describe('cas server如预期', function() {
                 expect(info.user).to.not.be.empty;
                 expect(info.proxyGrantingTicket).to.not.be.empty;
                 expect(store[info.proxyGrantingTicket]).to.not.be.empty;
-                serverLocal.close((err) => done(err));
-              }).catch(done);
+                serverLocal.close(err => done(err));
+              })["catch"](done);
           });
       });
     });
   });
 
-  it('访问/cas/serviceValidate, options设置期望的500响应码, 接口响应500', function(done) {
+  it('访问/cas/serviceValidate, options设置期望的500响应码, 接口响应500', function(done){
 
     // 期望状态码500
     casServerFactory(app, {
@@ -184,7 +184,7 @@ describe('cas server如预期', function() {
     });
   });
 
-  it('访问/cas/serviceValidate, options设置期望的响应码200和字符串fail, 接口响应对应响应码或失败的xml响应', function(done) {
+  it('访问/cas/serviceValidate, options设置期望的响应码200和字符串fail, 接口响应对应响应码或失败的xml响应', function(done){
     casServerFactory(app, {
       expectStatus: 200,
       expectStatusStr: 'fail',
@@ -201,12 +201,12 @@ describe('cas server如预期', function() {
           parseCasResponse(res.text, logger).then((info) => {
             expect(info.user).to.be.empty;
             done();
-          }).catch(done);
+          })["catch"](done);
         });
     });
   });
 
-  it('/cas/proxy接口,参数正确能够正确获取pt', function(done) {
+  it('/cas/proxy接口,参数正确能够正确获取pt', function(done){
     casServerFactory(app);
     request.get('/cas/proxy?pgt=fakePgtId&targetService=xxx')
       .expect(200)
@@ -218,7 +218,7 @@ describe('cas server如预期', function() {
       });
   });
 
-  it('/cas/proxy接口,无pgt参数, 无法正确获取pt', function(done) {
+  it('/cas/proxy接口,无pgt参数, 无法正确获取pt', function(done){
     casServerFactory(app);
     request.get('/cas/proxy?targetService=xxx')
       .expect(200)
@@ -230,7 +230,7 @@ describe('cas server如预期', function() {
       });
   });
 
-  it('/cas/proxy接口,无targetService参数, 无法获取正确的pt', function(done) {
+  it('/cas/proxy接口,无targetService参数, 无法获取正确的pt', function(done){
     casServerFactory(app);
 
     request.get('/cas/proxy?pgt=fakePgtId').expect(200).end((err, res) => {
@@ -241,7 +241,7 @@ describe('cas server如预期', function() {
     });
   });
 
-  it('/cas/v1/tickets接口, 参数全部正确, 返回新的pgtId, 能够正确调用/proxy接口换st', function(done) {
+  it('/cas/v1/tickets接口, 参数全部正确, 返回新的pgtId, 能够正确调用/proxy接口换st', function(done){
     casServerFactory(app);
     const service = 'http://localhost:3002/cas/validate';
     request.post('/cas/v1/tickets').send({
@@ -263,7 +263,7 @@ describe('cas server如预期', function() {
     });
   });
 
-  it('/cas/v1/tickets接口, 参数异常, 响应400', function(done) {
+  it('/cas/v1/tickets接口, 参数异常, 响应400', function(done){
     casServerFactory(app);
     const service = 'http://localhost:3002/cas/validate';
     request.post('/cas/v1/tickets').send({
@@ -274,7 +274,7 @@ describe('cas server如预期', function() {
     }).expect(400).end(done);
   });
 
-  it('/cas/v1/tickets/:tgt接口可以正常删除tgt', function(done) {
+  it('/cas/v1/tickets/:tgt接口可以正常删除tgt', function(done){
     casServerFactory(app);
     const service = 'http://localhost:3002/cas/validate';
     request.post('/cas/v1/tickets').send({
@@ -293,7 +293,7 @@ describe('cas server如预期', function() {
             const pt = parseProxyTicketResponse(res.text);
             expect(pt).to.not.be.empty;
 
-            request.delete(`/cas/proxy?pgt=${pgtId}&targetService=xxx`)
+            request["delete"](`/cas/proxy?pgt=${pgtId}&targetService=xxx`)
               .expect(200)
               .end((_, res) => {
                 const nowPt = parseRestletResponse(res.text);

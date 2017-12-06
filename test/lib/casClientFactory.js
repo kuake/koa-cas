@@ -21,10 +21,10 @@ const _ = require('lodash');
 module.exports = function(app, casOptions, {
   beforeCasConfigHook,
   afterCasConfigHook,
-} = {}) {
+} = {}){
 
-  app.keys = [ 'cas', 'test' ];
-  app.use(convert.back(cookie.default('here is some secret')));
+  app.keys = ['cas', 'test'];
+  app.use(convert.back(cookie["default"]('here is some secret')));
   app.use(session({
     key: 'SESSIONID', // default "koa:sess"
     store: session.MemoryStore(),
@@ -39,7 +39,7 @@ module.exports = function(app, casOptions, {
     appKey: 'BXEKfudgcgVDBb8k',
   };
   console.log('casClientFactory: typeof beforeCasConfigHook = ', typeof beforeCasConfigHook === 'function');
-  if (typeof beforeCasConfigHook === 'function') beforeCasConfigHook(app);
+  if(typeof beforeCasConfigHook === 'function'){beforeCasConfigHook(app);}
 
   const defaultOptions = {
     ignore: [
@@ -73,7 +73,7 @@ module.exports = function(app, casOptions, {
       status: 418,
     },
     logger(ctx, type) { // eslint-disable-line
-      return function() {};
+      return function(){};
     },
     restletIntegration: {
       demo1: {
@@ -94,7 +94,7 @@ module.exports = function(app, casOptions, {
     },
   };
 
-  if (casOptions) {
+  if(casOptions){
     _.merge(defaultOptions, casOptions);
   }
   // CAS config
@@ -109,7 +109,7 @@ module.exports = function(app, casOptions, {
   //   app.use(casClient.slo());
   // }
 
-  if (typeof afterCasConfigHook === 'function') afterCasConfigHook(app);
+  if(typeof afterCasConfigHook === 'function'){afterCasConfigHook(app);}
 
   // if (typeof hookAfterCasConfig === 'function') {
   //   console.log('hookAfterCasConfig', hookAfterCasConfig);
@@ -118,7 +118,7 @@ module.exports = function(app, casOptions, {
 
   const router = new Router();
   router.get('/logout', casClient.logout());
-  router.get('/', function* () {
+  router.get('/', function * (){
     console.log('GET / DONE');
     this.body = 'ok';
   });

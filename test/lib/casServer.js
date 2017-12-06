@@ -17,22 +17,22 @@ const qs = require('querystring');
 // var pgtIou = 'PGTIOU-3-cyz9mq6SaNYsGXj7BEO2-login.rdm.org';
 // var pgtId = uuid.v4();
 
-function getSuccessResponse(pgtIou) {
+function getSuccessResponse(pgtIou){
   let res = `
   <cas:serviceResponse xmlns:cas='http://www.yale.edu/tp/cas'> +
     <cas:authenticationSuccess>
     <cas:user>DEFAULT_USER_NAME</cas:user>
   `;
 
-  if (pgtIou) res += `<cas:proxyGrantingTicket>${pgtIou}</cas:proxyGrantingTicket>`;
+  if(pgtIou){res += `<cas:proxyGrantingTicket>${pgtIou}</cas:proxyGrantingTicket>`;}
 
   res += '</cas:authenticationSuccess></cas:serviceResponse > ';
 
   return res;
 }
 
-function getFailResponse(st) {
-  return `
+function getFailResponse(st){
+  return`
       <cas:serviceResponse xmlns:cas='http://www.yale.edu/tp/cas'>
       <cas:authenticationFailure code='INVALID_TICKET'>
       未能够识别出目标 &#039;${st}&#039;票根
@@ -41,7 +41,7 @@ function getFailResponse(st) {
     `;
 }
 
-function getSuccessProxyResponse(pt) {
+function getSuccessProxyResponse(pt){
   const res = `
     <cas:serviceResponse xmlns:cas='http://www.yale.edu/tp/cas'>
     <cas:proxySuccess>
@@ -52,11 +52,11 @@ function getSuccessProxyResponse(pt) {
   return res;
 }
 
-function getFailProxyResponse(status, pgtId) {
+function getFailProxyResponse(status, pgtId){
   let res = '';
   pgtId = pgtId || 'TGT--EiiRpxOYfq2PZNjK7jBMiID9Wy55YUFRvVNLXbKDXZNQtXVpjn-login.rdm.org';
-  switch (status) {
-    case 'success':
+  switch(status){
+    case'success':
       res = `
         <cas:serviceResponse xmlns:cas='http://www.yale.edu/tp/cas'>
       <cas:proxySuccess>
@@ -64,7 +64,7 @@ function getFailProxyResponse(status, pgtId) {
     </cas:proxySuccess>
     </cas:serviceResponse>`;
       break;
-    case 'invalidPgt':
+    case'invalidPgt':
       res = `
         <cas:serviceResponse xmlns:cas='http://www.yale.edu/tp/cas'>
       <cas:proxyFailure code='INVALID_TICKET'>
@@ -72,7 +72,7 @@ function getFailProxyResponse(status, pgtId) {
     </cas:proxyFailure>
     </cas:serviceResponse>`;
       break;
-    case 'emptyPgt':
+    case'emptyPgt':
       res = `
         <cas:serviceResponse xmlns:cas='http://www.yale.edu/tp/cas'>
         <cas:proxyFailure code='INVALID_REQUEST'>
@@ -80,8 +80,8 @@ function getFailProxyResponse(status, pgtId) {
         </cas:proxyFailure>
         </cas:serviceResponse>`;
       break;
-    case 'emptyRequest':
-    case 'emptyTargetService':
+    case'emptyRequest':
+    case'emptyTargetService':
     default:
       res = `
         <cas:serviceResponse xmlns:cas='http://www.yale.edu/tp/cas'>
@@ -95,7 +95,7 @@ function getFailProxyResponse(status, pgtId) {
   return res;
 }
 
-function getRestletIntegrationPGT(pgt) {
+function getRestletIntegrationPGT(pgt){
   pgt = pgt || 'TGT-2-c9av4cPM1ig7e5DZEiCBZjAATXspVuoDZVqDkvo9aSJabRReb-login.rdm.org';
   const res = `<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN">
     <html>
@@ -115,15 +115,15 @@ function getRestletIntegrationPGT(pgt) {
   return res;
 }
 
-function initTgt() {
-  return {
+function initTgt(){
+  return{
     st: {},
     pt: {},
   };
 }
 
-function initTicket(service) {
-  return {
+function initTicket(service){
+  return{
     valid: true,
     service,
   };
@@ -145,8 +145,8 @@ module.exports = (app, options) => {
   };
   options.expectStatus = options.expectStatus || 200;
 
-  app.keys = [ 'cas', 'test' ];
-  app.use(convert.back(cookie.default('here is some secret')));
+  app.keys = ['cas', 'test'];
+  app.use(convert.back(cookie["default"]('here is some secret')));
   app.use(session({
     key: 'SESSIONID', // default "koa:sess"
     store: session.MemoryStore(),
@@ -155,23 +155,23 @@ module.exports = (app, options) => {
   app.use(convert.back(json()));
 
   const router = new Router();
-  router.get('/cas/serviceValidate', function* () {
-    if (options.expectStatus !== 200) {
+  router.get('/cas/serviceValidate', function * (){
+    if(options.expectStatus !== 200){
       this.status = options.expectStatus;
       return;
     }
-    if (options.expectStatusStr === 'fail') {
+    if(options.expectStatusStr === 'fail'){
       this.status = 200;
       this.body = getFailResponse('xxx');
       return;
     }
-    if (options.expectStatusStr === 'invalid') {
+    if(options.expectStatusStr === 'invalid'){
       this.status = 200;
       this.body = 'i am a invalid xml';
       return;
     }
-    if (this.query) {
-      if (!this.query.ticket || !this.query.service) {
+    if(this.query){
+      if(!this.query.ticket || !this.query.service){
         this.body = getFailResponse('xxx');
         return;
       }
@@ -182,9 +182,9 @@ module.exports = (app, options) => {
       let tgt; // eslint-disable-line
 
       outer: // eslint-disable-line
-        for (const i in tgts) {
-          for (const j in tgts[i].st) {
-            if (j === ticket && tgts[i].st[j].valid && tgts[i].st[j].service === service) {
+        for(const i in tgts){
+          for(const j in tgts[i].st){
+            if(j === ticket && tgts[i].st[j].valid && tgts[i].st[j].service === service){
               finded = true;
               tgts[i].st[j].valid = false;
               tgt = tgts[i];
@@ -194,7 +194,7 @@ module.exports = (app, options) => {
           }
         }
 
-      if (!finded) {
+      if(!finded){
         console.log('2');
         this.body = getFailResponse(ticket);
         return;
@@ -202,90 +202,89 @@ module.exports = (app, options) => {
 
       const pgtIou = uuid.v4();
 
-      if (this.query.pgtUrl) {
-        const proxyCallbackUrl = `${this.query.pgtUrl}?${qs.stringify({ pgtId: tgtId, pgtIou })}`;
+      if(this.query.pgtUrl){
+        const proxyCallbackUrl = `${this.query.pgtUrl}?${qs.stringify({pgtId: tgtId, pgtIou})}`;
         console.log('cas server: sending request to proxyCallback, url=', proxyCallbackUrl);
-        try {
+        try{
           yield utils.getRequest(proxyCallbackUrl);
           this.body = getSuccessResponse(pgtIou);
           return;
-        } catch (err) {
+        }catch(err){
           console.error('Error when sending request to pgtUrl', err);
         }
-      } else {
+      }else{
         this.body = getSuccessResponse();
-        return;
+
       }
     }
   });
 
-  router.get('/cas/proxy', function* () {
-    if (!this.query) {
+  router.get('/cas/proxy', function * (){
+    if(!this.query){
       this.body = getFailProxyResponse('emptyRequest');
       return;
     }
-    if (!this.query.pgt) {
+    if(!this.query.pgt){
       this.body = getFailProxyResponse('emptyPgt');
-    } else if (!this.query.targetService) {
+    }else if(!this.query.targetService){
       this.body = getFailProxyResponse('emptyTargetService');
-    } else if (this.query.targetService === 'invalid') {
+    }else if(this.query.targetService === 'invalid'){
       this.body = getFailProxyResponse('emptyTargetService');
-    } else if (this.query.pgt in tgts || this.query.pgt === 'fakePgtId') {
+    }else if(this.query.pgt in tgts || this.query.pgt === 'fakePgtId'){
       const pt = uuid.v4();
       this.body = getSuccessProxyResponse(pt);
-    } else {
+    }else{
       this.body = getFailProxyResponse('invalidPgt', this.query.pgt);
     }
   });
 
-  router.get('/cas/login', function* () {
+  router.get('/cas/login', function * (){
     console.log('GET /cas/login');
-    if (this.query && this.query.service) {
+    if(this.query && this.query.service){
       const pgtId = uuid.v4();
       tgts[pgtId] = initTgt();
-      const st = uuid.v4();
+      const st = 'ST-' + uuid.v4().substring(3);
       tgts[pgtId].st[st] = initTicket(this.query.service);
       const path = decodeURIComponent(this.query.service);
       const uri = url.parse(path, true);
-      if (!uri.query) uri.query = {};
+      if(!uri.query){uri.query = {};}
       uri.query.ticket = st;
       this.redirect(url.format(uri));
-    } else {
+    }else{
       this.body = 'ok';
     }
   });
 
-  router.get('/cas/logout', function* () {
+  router.get('/cas/logout', function * (){
     this.body = 'ok';
   });
 
-  router.post('/cas/v1/tickets', function* () {
-
+  router.post('/cas/v1/tickets', function * (){
     const username = 'username';
     const password = 'password';
     const type = '8';
     const body = this.request.body;
     console.log('/cas/v1/tickets body: ', body);
-    if (body &&
+    if(body &&
       body.username === username &&
       `${body.type}` === type &&
-      body.password === password) {
+      body.password === password){
       const pgtId = uuid.v4();
       tgts[pgtId] = initTgt();
       this.body = getRestletIntegrationPGT(pgtId);
-    } else {
+    }else{
       this.status = 400;
     }
   });
 
-  router.delete('/cas/v1/tickets/:tgt', function* () {
-    if (this.params && this.params.tgt && (this.params.tgt in tgts)) {
+  router["delete"]('/cas/v1/tickets/:tgt', function * (){
+    if(this.params && this.params.tgt && (this.params.tgt in tgts)){
       delete tgts[this.params.tgt];
     }
     this.status = 200;
   });
 
-  router.get('/cas/v1/tickets', function* () {
+  router.get('/cas/v1/tickets', function * (){
     this.body = JSON.stringify(tgts);
   });
   app.use(router.routes()).use(router.allowedMethods());

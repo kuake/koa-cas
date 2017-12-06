@@ -1,14 +1,14 @@
 const Koa = require('koa');
 const supertest = require('supertest');
-const { expect } = require('chai');
+const{expect} = require('chai');
 const casServerFactory = require('./lib/casServer');
 const casClientFactory = require('./lib/casClientFactory');
 const handleCookies = require('./lib/handleCookie');
 const globalPGTStore = require('../lib/globalStoreCache');
-const { parseRestletResponse } = require('../lib/getProxyTicketThroughRestletReq.js');
-const { logger } = require('./lib/test-utils');
+const{parseRestletResponse} = require('../lib/getProxyTicketThroughRestletReq.js');
+const{logger} = require('./lib/test-utils');
 
-describe('清理全局tgt工作正常', function() {
+describe('清理全局tgt工作正常', function(){
 
   this.timeout(10000);
   const localhost = 'http://127.0.0.1';
@@ -26,7 +26,7 @@ describe('清理全局tgt工作正常', function() {
   let clientRequest;
   let serverRequest;
 
-  beforeEach(function(done) {
+  beforeEach(function(done){
 
     casServerApp = new Koa();
     casServerFactory(casServerApp);
@@ -40,8 +40,8 @@ describe('清理全局tgt工作正常', function() {
       },
       restletIntegration: {
         demo1: {
-          trigger(req) {
-            if (req.path.indexOf('restlet') > -1 || req.path.indexOf('clearRestlet') > -1) return true;
+          trigger(req){
+            if(req.path.indexOf('restlet') > -1 || req.path.indexOf('clearRestlet') > -1){return true;}
           },
           params: {
             username: 'username',
@@ -53,20 +53,20 @@ describe('清理全局tgt工作正常', function() {
       },
       logger,
     }, {
-      beforeCasConfigHook(app) {
-        app.use(function* (next) {
-          if (typeof hookBeforeCasConfig === 'function') {
+      beforeCasConfigHook(app){
+        app.use(function * (next){
+          if(typeof hookBeforeCasConfig === 'function'){
             return yield hookBeforeCasConfig(this, next);
-          } else {
+          }else{
             return yield next;
           }
         });
       },
-      afterCasConfigHook(app) {
-        app.use(function* (next) {
-          if (typeof hookAfterCasConfig === 'function') {
+      afterCasConfigHook(app){
+        app.use(function * (next){
+          if(typeof hookAfterCasConfig === 'function'){
             return yield hookAfterCasConfig(this, next);
-          } else {
+          }else{
             return yield next;
           }
         });
@@ -74,12 +74,12 @@ describe('清理全局tgt工作正常', function() {
     });
 
     casServer = casServerApp.listen(casPort, (err) => {
-      if (err) throw err;
+      if(err){throw err;}
       console.log('casServer started to listen ', casPort);
       serverRequest = supertest.agent(casServerApp.listen());
 
       casClientServer = casClientApp.listen(clientPort, (err) => {
-        if (err) throw err;
+        if(err){throw err;}
         console.log(`clientServer started to listen: ${clientPort}`);
         clientRequest = supertest.agent(casClientApp.listen());
         done();
@@ -87,25 +87,25 @@ describe('清理全局tgt工作正常', function() {
     });
   });
 
-  afterEach(function(done) {
+  afterEach(function(done){
     hookAfterCasConfig = null;
     hookBeforeCasConfig = null;
-    casServer.close(function(err) {
-      if (err) throw err;
-      casClientServer.close(function(err) {
-        if (err) throw err;
+    casServer.close(function(err){
+      if(err){throw err;}
+      casClientServer.close(function(err){
+        if(err){throw err;}
         done();
       });
     });
   });
 
-  it('正常获取tgt, 并且能够正常获取pt后, 调用清理tgt接口, 再用老tgt换pt失败', function(done) {
+  it('正常获取tgt, 并且能够正常获取pt后, 调用清理tgt接口, 再用老tgt换pt失败', function(done){
     let pgt;
 
-    hookAfterCasConfig = function* (ctx, next) {
+    hookAfterCasConfig = function * (ctx, next){
       console.log('hookAfterCasConfig');
-      if (ctx.path === '/restlet') {
-        if (ctx.query && ctx.query.time) {
+      if(ctx.path === '/restlet'){
+        if(ctx.query && ctx.query.time){
           const cachedPgt = globalPGTStore.get('demo1');
           expect(cachedPgt).to.equal(pgt);
         }
@@ -115,12 +115,12 @@ describe('清理全局tgt工作正常', function() {
         pgt = globalPGTStore.get('demo1');
         expect(pgt).to.not.be.empty;
         ctx.body = pt;
-        return;
-      } else if (ctx.path === '/clearRestlet') {
+
+      }else if(ctx.path === '/clearRestlet'){
         yield ctx.clearRestlet();
         ctx.body = 'ok';
-        return;
-      } else {
+
+      }else{
         return yield next;
       }
     };
@@ -129,7 +129,7 @@ describe('清理全局tgt工作正常', function() {
     clientRequest.get('/restlet')
       .expect(200)
       .end((err, response) => {
-        if (err) throw err;
+        if(err){throw err;}
         console.log('/restlet header:', response.header);
         cookies = handleCookies.setCookies(response.header);
         const pt = response.text;
@@ -139,11 +139,11 @@ describe('清理全局tgt工作正常', function() {
           .set('Cookie', handleCookies.getCookies(cookies))
           .expect(200)
           .end((err1) => {
-            if (err1) throw err1;
+            if(err1){throw err1;}
             serverRequest.get(`/cas/proxy?pgt=${pgt}&targetService=xxx`)
               .expect(200)
               .end((err2, res) => {
-                if (err2) throw err2;
+                if(err2){throw err2;}
                 console.log('/cas/proxy: ', res.text);
                 const nowPt = parseRestletResponse(res.text);
                 expect(nowPt).to.be.empty;

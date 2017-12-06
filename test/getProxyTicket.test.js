@@ -1,23 +1,22 @@
 const Koa = require('koa');
-const { expect } = require('chai');
+const{expect} = require('chai');
 const casServerFactory = require('./lib/casServer');
 const casClientFactory = require('./lib/casClientFactory');
 const handleCookies = require('./lib/handleCookie');
-const { logger } = require('./lib/test-utils');
+const{logger} = require('./lib/test-utils');
 const supertest = require('supertest');
 const co = require('co');
 
-const rootPathRoute = function* (ctx, next) {
-  if (ctx.path === '/') {
+const rootPathRoute = function * (ctx, next){
+  if(ctx.path === '/'){
     const pt = yield ctx.getProxyTicket('xxx');
     ctx.body = pt;
-  } else {
+  }else{
     yield next;
   }
 };
 
-describe('能够正确获取proxy ticket: ', function() {
-
+describe('能够正确获取proxy ticket: ', function(){
   const localhost = 'http://127.0.0.1';
   const casPort = 3004;
   const clientPort = 3002;
@@ -33,7 +32,7 @@ describe('能够正确获取proxy ticket: ', function() {
   let hookBeforeCasConfig;
   let hookAfterCasConfig;
 
-  beforeEach(function(done) {
+  beforeEach(function(done){
 
     casServerApp = new Koa();
     casServerFactory(casServerApp);
@@ -44,39 +43,39 @@ describe('能够正确获取proxy ticket: ', function() {
       serverPath,
       logger,
     }, {
-      beforeCasConfigHook(app) {
-        app.use(function* (next) {
-          if (typeof hookBeforeCasConfig === 'function') {
+      beforeCasConfigHook(app){
+        app.use(function * (next){
+          if(typeof hookBeforeCasConfig === 'function'){
             return yield hookBeforeCasConfig(this, next);
-          } else {
+          }else{
             return yield next;
           }
         });
       },
-      afterCasConfigHook(app) {
-        app.use(function* (next) {
-          if (typeof hookAfterCasConfig === 'function') {
+      afterCasConfigHook(app){
+        app.use(function * (next){
+          if(typeof hookAfterCasConfig === 'function'){
             return yield hookAfterCasConfig(this, next);
-          } else {
+          }else{
             return yield next;
           }
         });
       },
     });
 
-    co(function* () {
-      yield new Promise((r, j) => casServer = casServerApp.listen(casPort, (err) => err ? j(err) : r()));
+    co(function * (){
+      yield new Promise((r, j) => casServer = casServerApp.listen(casPort, err => err ? j(err) : r()));
       console.log(`casServer listen ${casPort}`);
       serverRequest = supertest.agent(casServerApp.listen());
 
-      yield new Promise((r, j) => casClientServer = casClientApp.listen(clientPort, (err) => err ? j(err) : r()));
+      yield new Promise((r, j) => casClientServer = casClientApp.listen(clientPort, err => err ? j(err) : r()));
       console.log(`casClientServer listen ${clientPort}`);
       request = supertest.agent(casClientApp.listen());
       done();
     });
   });
 
-  afterEach(function(done) {
+  afterEach(function(done){
     hookAfterCasConfig = null;
     hookBeforeCasConfig = null;
     casServer.close();
@@ -84,10 +83,10 @@ describe('能够正确获取proxy ticket: ', function() {
     done();
   });
 
-  it('登陆成功后能够成功获取pt', function(done) {
+  it('登陆成功后能够成功获取pt', function(done){
     hookAfterCasConfig = rootPathRoute;
 
-    co(function* () {
+    co(function * (){
       let res = yield serverRequest.get(`/cas/login?service=${encodeURIComponent(`${clientPath}/cas/validate`)}`).expect(302);
       const redirectLocation = res.header.location;
 
@@ -102,10 +101,10 @@ describe('能够正确获取proxy ticket: ', function() {
     });
   });
 
-  it('登陆成功后能够成功获取pt,使用缓存, 再次请求的pt应与上一次相同', function(done) {
+  it('登陆成功后能够成功获取pt,使用缓存, 再次请求的pt应与上一次相同', function(done){
     hookAfterCasConfig = rootPathRoute;
 
-    co(function* () {
+    co(function * (){
       console.log('::: GET /cas/login :');
       let res = yield serverRequest.get(`/cas/login?service=${encodeURIComponent(`${clientPath}/cas/validate`)}`).expect(302);
       const redirectLocation = res.header.location;
@@ -129,22 +128,22 @@ describe('能够正确获取proxy ticket: ', function() {
     });
   });
 
-  it('登陆成功后能够成功获取pt,使用缓存, 但是设置disableCache, 再次请求的pt应与上一次不同', function(done) {
-    hookAfterCasConfig = function* (ctx, next) {
-      if (ctx.path === '/') {
+  it('登陆成功后能够成功获取pt,使用缓存, 但是设置disableCache, 再次请求的pt应与上一次不同', function(done){
+    hookAfterCasConfig = function * (ctx, next){
+      if(ctx.path === '/'){
         ctx.body = yield ctx.getProxyTicket('xxx');
-      } else if (ctx.path === '/noCache') {
+      }else if(ctx.path === '/noCache'){
         ctx.body = yield ctx.getProxyTicket('xxx', {
           disableCache: true,
         });
-      } else if (ctx.path === '/noCache/old') {
+      }else if(ctx.path === '/noCache/old'){
         ctx.body = yield ctx.getProxyTicket('xxx', true);
-      } else {
+      }else{
         yield next;
       }
     };
 
-    co(function* () {
+    co(function * (){
       let res = yield serverRequest.get(`/cas/login?service=${encodeURIComponent(`${clientPath}/cas/validate`)}`).expect(302);
       const redirectLocation = res.header.location;
 
@@ -171,20 +170,20 @@ describe('能够正确获取proxy ticket: ', function() {
     });
   });
 
-  it('登陆成功后能够成功获取pt,使用缓存, 设置renew, 再次请求的pt应与上一次不同, 再下一次与上一次相同', function(done) {
-    hookAfterCasConfig = function* (ctx, next) {
-      if (ctx.path === '/') {
+  it('登陆成功后能够成功获取pt,使用缓存, 设置renew, 再次请求的pt应与上一次不同, 再下一次与上一次相同', function(done){
+    hookAfterCasConfig = function * (ctx, next){
+      if(ctx.path === '/'){
         ctx.body = yield ctx.getProxyTicket('xxx');
-      } else if (ctx.path === '/renew') {
+      }else if(ctx.path === '/renew'){
         ctx.body = yield ctx.getProxyTicket('xxx', {
           renew: true,
         });
-      } else {
+      }else{
         return yield next;
       }
     };
 
-    co(function* () {
+    co(function * (){
       let res = yield serverRequest.get(`/cas/login?service=${encodeURIComponent(`${clientPath}/cas/validate`)}`).expect(302);
       const redirectLocation = res.header.location;
 
@@ -214,9 +213,9 @@ describe('能够正确获取proxy ticket: ', function() {
     });
   });
 
-  it('登陆成功后能够成功获取pt,不使用缓存, 再次请求的pt应与上一次不同', function(done) {
-    co(function* () {
-      yield new Promise((r, j) => casClientServer.close((err) => err ? j(err) : r()));
+  it('登陆成功后能够成功获取pt,不使用缓存, 再次请求的pt应与上一次不同', function(done){
+    co(function * (){
+      yield new Promise((r, j) => casClientServer.close(err => err ? j(err) : r()));
 
       casClientApp = new Koa();
       casClientFactory(casClientApp, {
@@ -227,14 +226,14 @@ describe('能够正确获取proxy ticket: ', function() {
         },
         logger,
       });
-      casClientApp.use(function* (next) {
-        if (this.path === '/getPt') {
+      casClientApp.use(function * (next){
+        if(this.path === '/getPt'){
           this.body = yield this.getProxyTicket('xxx');
-        } else {
+        }else{
           yield next;
         }
       });
-      yield new Promise((r, j) => casClientServer = casClientApp.listen(clientPort, (err) => err ? j(err) : r()));
+      yield new Promise((r, j) => casClientServer = casClientApp.listen(clientPort, err => err ? j(err) : r()));
       request = supertest.agent(casClientApp.listen());
 
       let res = yield serverRequest.get(`/cas/login?service=${encodeURIComponent(`${clientPath}/cas/validate`)}`).expect(302);
@@ -256,9 +255,9 @@ describe('能够正确获取proxy ticket: ', function() {
     });
   });
 
-  it('登陆成功后能够成功获取pt, 使用缓存, 缓存有效时获取的与上一次相同, 过期后再获取, 请求的pt与上一次不同', function(done) {
-    co(function* () {
-      yield new Promise((r, j) => casClientServer.close((err) => err ? j(err) : r()));
+  it('登陆成功后能够成功获取pt, 使用缓存, 缓存有效时获取的与上一次相同, 过期后再获取, 请求的pt与上一次不同', function(done){
+    co(function * (){
+      yield new Promise((r, j) => casClientServer.close(err => err ? j(err) : r()));
 
       casClientApp = new Koa();
       casClientFactory(casClientApp, {
@@ -270,14 +269,14 @@ describe('能够正确获取proxy ticket: ', function() {
         },
         logger,
       });
-      casClientApp.use(function* (next) {
-        if (this.path === '/getPt') {
+      casClientApp.use(function * (next){
+        if(this.path === '/getPt'){
           this.body = yield this.getProxyTicket('xxx');
-        } else {
+        }else{
           yield next;
         }
       });
-      yield new Promise((r, j) => casClientServer = casClientApp.listen(clientPort, (err) => err ? j(err) : r()));
+      yield new Promise((r, j) => casClientServer = casClientApp.listen(clientPort, err => err ? j(err) : r()));
       request = supertest.agent(casClientApp.listen());
 
       let res = yield serverRequest.get(`/cas/login?service=${encodeURIComponent(`${clientPath}/cas/validate`)}`).expect(302);
@@ -296,7 +295,7 @@ describe('能够正确获取proxy ticket: ', function() {
       const secondPt = res.text;
       expect(secondPt).to.equal(pt);
 
-      yield new Promise((r) => setTimeout(() => r(), 1000));
+      yield new Promise(r => setTimeout(() => r(), 1000));
       res = yield request.get('/getPt').set('Cookie', handleCookies.getCookies(cookies)).expect(200);
       expect(res.text).to.not.be.empty;
       const thirdPt = res.text;
@@ -306,9 +305,9 @@ describe('能够正确获取proxy ticket: ', function() {
     });
   });
 
-  it('登陆成功后能够成功获取pt, 使用缓存, 设置filter, filter外的使用缓存, 与上次相同, filter内的与上次不同', function(done) {
-    co(function* () {
-      yield new Promise((r, j) => casClientServer.close((err) => err ? j(err) : r()));
+  it('登陆成功后能够成功获取pt, 使用缓存, 设置filter, filter外的使用缓存, 与上次相同, filter内的与上次不同', function(done){
+    co(function * (){
+      yield new Promise((r, j) => casClientServer.close(err => err ? j(err) : r()));
 
       casClientApp = new Koa();
       casClientFactory(casClientApp, {
@@ -325,15 +324,15 @@ describe('能够正确获取proxy ticket: ', function() {
         },
         logger,
       });
-      casClientApp.use(function* (next) {
-        if (this.path === '/getPt') {
+      casClientApp.use(function * (next){
+        if(this.path === '/getPt'){
           const targetService = this.query && this.query.targetService ? this.query.targetService : '';
           this.body = yield this.getProxyTicket(targetService);
-        } else {
+        }else{
           return yield next;
         }
       });
-      yield new Promise((r, j) => casClientServer = casClientApp.listen(clientPort, (err) => err ? j(err) : r()));
+      yield new Promise((r, j) => casClientServer = casClientApp.listen(clientPort, err => err ? j(err) : r()));
       request = supertest.agent(casClientApp.listen());
 
       let res = yield serverRequest.get(`/cas/login?service=${encodeURIComponent(`${clientPath}/cas/validate`)}`).expect(302);

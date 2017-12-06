@@ -4,7 +4,7 @@ const convert = require('koa-convert');
 const bodyParser = require('koa-bodyparser');
 const cookie = require('koa-cookie');
 const json = require('koa-json');
-const {
+const{
   toArray,
   getPath,
   isMatchRule,
@@ -16,13 +16,13 @@ const {
   deleteRequest,
   getLogger,
 } = require('../lib/utils');
-const { expect } = require('chai');
+const{expect} = require('chai');
 const http = require('http');
 const https = require('https');
 const fs = require('fs');
 const path = require('path');
 
-describe('utils单元测试', function() {
+describe('utils单元测试', function(){
 
   const localPath = 'http://localhost:3002';
   const port = 3002;
@@ -30,43 +30,43 @@ describe('utils单元测试', function() {
   const httpsLocalPath = 'https://localhost:3003';
 
   const loggerFactory = function (ctx, type) { // eslint-disable-line
-    return function() {};
+    return function(){};
   };
 
   let app;
   let server;
   let httpsServer;
 
-  before(function(done) {
+  before(function(done){
     app = new Koa();
-    app.keys = [ 'cas', 'test' ];
-    app.use(convert.back(cookie.default('here is some secret')));
+    app.keys = ['cas', 'test'];
+    app.use(convert.back(cookie["default"]('here is some secret')));
     app.use(bodyParser());
     app.use(convert.back(json()));
 
-    app.use(function* (next) {
-      if (this.path === '/') {
-        switch (this.method) {
-          case 'GET':
+    app.use(function * (next){
+      if(this.path === '/'){
+        switch(this.method){
+          case'GET':
             this.body = {
               message: 'ok',
             };
             return;
-          case 'DELETE':
+          case'DELETE':
             this.body = {
               message: 'ok',
             };
             return;
-          case 'POST':
+          case'POST':
             this.body = this.request.body;
             return;
           default:
             this.body = {
               message: 'Not Found',
             };
-            return;
+
         }
-      } else {
+      }else{
         return yield next;
       }
     });
@@ -81,29 +81,29 @@ describe('utils单元测试', function() {
       rejectUnhauthorized: false,
     };
 
-    server = http.createServer(app.callback()).listen(port, function(err) {
-      if (err) throw err;
+    server = http.createServer(app.callback()).listen(port, function(err){
+      if(err){throw err;}
 
-      httpsServer = https.createServer(options, app.callback()).listen(httpsPort, function(err) {
-        if (err) throw err;
+      httpsServer = https.createServer(options, app.callback()).listen(httpsPort, function(err){
+        if(err){throw err;}
         done();
       });
     });
   });
 
-  after(function(done) {
-    server.close(function(err) {
-      if (err) throw err;
+  after(function(done){
+    server.close(function(err){
+      if(err){throw err;}
 
-      httpsServer.close(function(err) {
-        if (err) throw err;
+      httpsServer.close(function(err){
+        if(err){throw err;}
         done();
       });
     });
   });
 
-  it('toArray, 传入伪数组, 输出真正数组', function() {
-    function aFunction() {
+  it('toArray, 传入伪数组, 输出真正数组', function(){
+    function aFunction(){
       expect(toArray(arguments)).to.be.a('array');
       expect(toArray(null)).to.be.a('array');
       expect(toArray(undefined)).to.be.a('array');
@@ -116,7 +116,7 @@ describe('utils单元测试', function() {
     aFunction(1, 2, 3);
   });
 
-  it('getPath传入指定名称, 返回拼好的路径', function() {
+  it('getPath传入指定名称, 返回拼好的路径', function(){
     const options = {
       servicePrefix: 'http://localhost:8080',
       serverPath: 'http://cas.sdet.wsd.com',
@@ -158,27 +158,27 @@ describe('utils单元测试', function() {
     expect(getPath('restletIntegration', options)).to.equal('http://cas.sdet.wsd.com/cas/v1/tickets');
   });
 
-  it('isMatchRule校验规则符合预期', function() {
+  it('isMatchRule校验规则符合预期', function(){
     const ctx = {
       path: '/',
     };
 
-    expect(isMatchRule(ctx, '/', '/')).to.be.true;
-    expect(isMatchRule(ctx, '/', '/api')).to.be.false;
+    expect(isMatchRule(ctx, '/', '/')).to.be["true"];
+    expect(isMatchRule(ctx, '/', '/api')).to.be["false"];
 
-    expect(isMatchRule(ctx, '/', /\//)).to.be.true;
-    expect(isMatchRule(ctx, '/', /\/api/)).to.be.false;
+    expect(isMatchRule(ctx, '/', /\//)).to.be["true"];
+    expect(isMatchRule(ctx, '/', /\/api/)).to.be["false"];
 
     expect(isMatchRule(ctx, '/', function (path, ctx) { //eslint-disable-line
       return path === '/';
-    })).to.be.true;
+    })).to.be["true"];
 
     expect(isMatchRule(ctx, '/', function (path, ctx) { //eslint-disable-line
       return path === '/api';
-    })).to.be.false;
+    })).to.be["false"];
   });
 
-  it('getOrigin能够获取正确原始路径', function() {
+  it('getOrigin能够获取正确原始路径', function(){
     const ctx = {
       originalUrl: '/api',
       query: {
@@ -200,87 +200,87 @@ describe('utils单元测试', function() {
     })).to.equal('http://localhost:8080/api');
   });
 
-  it('shouldIgnore能够正确的解析规则', function() {
+  it('shouldIgnore能够正确的解析规则', function(){
     const ctx = {
       path: '/',
     };
 
     expect(shouldIgnore(ctx, {
-      match: [ '/' ],
+      match: ['/'],
       logger: loggerFactory,
-    })).to.be.false;
+    })).to.be["false"];
 
     expect(shouldIgnore(ctx, {
-      match: [ '/api' ],
+      match: ['/api'],
       logger: loggerFactory,
-    })).to.be.true;
+    })).to.be["true"];
 
     expect(shouldIgnore(ctx, {
-      match: [ /\// ],
+      match: [/\//],
       logger: loggerFactory,
-    })).to.be.false;
+    })).to.be["false"];
 
     expect(shouldIgnore(ctx, {
-      match: [ /\/api/ ],
+      match: [/\/api/],
       logger: loggerFactory,
-    })).to.be.true;
+    })).to.be["true"];
 
     expect(shouldIgnore(ctx, {
       match: [ function(pathname, ctx) { // eslint-disable-line
         return pathname === '/';
-      } ],
+      }],
       logger: loggerFactory,
-    })).to.be.false;
+    })).to.be["false"];
 
     expect(shouldIgnore(ctx, {
       match: [ function(pathname, ctx) { // eslint-disable-line
         return pathname === '/api';
-      } ],
+      }],
       logger: loggerFactory,
-    })).to.be.true;
+    })).to.be["true"];
 
     expect(shouldIgnore(ctx, {
-      ignore: [ '/' ],
+      ignore: ['/'],
       logger: loggerFactory,
-    })).to.be.true;
+    })).to.be["true"];
 
     expect(shouldIgnore(ctx, {
-      ignore: [ '/api' ],
+      ignore: ['/api'],
       logger: loggerFactory,
-    })).to.be.false;
+    })).to.be["false"];
 
     expect(shouldIgnore(ctx, {
-      ignore: [ /\// ],
+      ignore: [/\//],
       logger: loggerFactory,
-    })).to.be.true;
+    })).to.be["true"];
 
     expect(shouldIgnore(ctx, {
-      ignore: [ /\/api/ ],
+      ignore: [/\/api/],
       logger: loggerFactory,
-    })).to.be.false;
+    })).to.be["false"];
 
     expect(shouldIgnore(ctx, {
       ignore: [ function(pathname, ctx) { // eslint-disable-line
         return pathname === '/';
-      } ],
+      }],
       logger: loggerFactory,
-    })).to.be.true;
+    })).to.be["true"];
 
     expect(shouldIgnore(ctx, {
       ignore: [ function(pathname, ctx) { // eslint-disable-line
         return pathname === '/api';
-      } ],
+      }],
       logger: loggerFactory,
-    })).to.be.false;
+    })).to.be["false"];
 
     expect(shouldIgnore(ctx, {
       ignore: [],
       match: [],
       logger: loggerFactory,
-    })).to.be.false;
+    })).to.be["false"];
   });
 
-  it('getLastUrl能够正确的获取最后的访问路径, 并设置默认值', function() {
+  it('getLastUrl能够正确的获取最后的访问路径, 并设置默认值', function(){
 
     const options = {
       servicePrefix: 'http://localhost:8080',
@@ -318,28 +318,28 @@ describe('utils单元测试', function() {
     expect(getLastUrl({}, options)).to.equal('/');
   });
 
-  it('getRequest能够正确发送http GET请求,接收请求', function(done) {
-    co(function* () {
+  it('getRequest能够正确发送http GET请求,接收请求', function(done){
+    co(function * (){
       const res = yield getRequest(localPath);
       expect(res.status).to.equal(200);
       expect(res.body.replace(/\s*/g, '')).to.equal(JSON.stringify({
         message: 'ok',
       }));
       done();
-    }).catch(done);
+    })["catch"](done);
   });
 
-  it('getRequest能够正确发送https GET请求,接收请求', function(done) {
-    co(function* () {
+  it('getRequest能够正确发送https GET请求,接收请求', function(done){
+    co(function * (){
       const res = yield getRequest(httpsLocalPath);
       expect(res.status).to.equal(200);
-      expect(res.body.replace(/\s*/g, '')).to.equal(JSON.stringify({ message: 'ok' }));
+      expect(res.body.replace(/\s*/g, '')).to.equal(JSON.stringify({message: 'ok'}));
       done();
-    }).catch(done);
+    })["catch"](done);
   });
 
-  it('postRequest能够正确发送http POST请求,接收请求', function(done) {
-    co(function* () {
+  it('postRequest能够正确发送http POST请求,接收请求', function(done){
+    co(function * (){
       const data = {
         hello: 'world',
       };
@@ -348,11 +348,11 @@ describe('utils单元测试', function() {
       expect(res.status).to.equal(200);
       expect(res.body.replace(/\s*/g, '')).to.equal(JSON.stringify(data));
       done();
-    }).catch(done);
+    })["catch"](done);
   });
 
-  it('postRequest能够正确发送http POST请求, 设置特殊头, 并接收请求', function(done) {
-    co(function* () {
+  it('postRequest能够正确发送http POST请求, 设置特殊头, 并接收请求', function(done){
+    co(function * (){
       const data = {
         hello: 'world',
       };
@@ -365,11 +365,11 @@ describe('utils单元测试', function() {
       expect(res.status).to.equal(200);
       expect(res.body.replace(/\s*/g, '')).to.equal(JSON.stringify(data));
       done();
-    }).catch(done);
+    })["catch"](done);
   });
 
-  it('postRequest能够正确发送https POST请求,接收请求', function(done) {
-    co(function* () {
+  it('postRequest能够正确发送https POST请求,接收请求', function(done){
+    co(function * (){
       const data = {
         hello: 'world',
       };
@@ -378,41 +378,41 @@ describe('utils单元测试', function() {
       expect(res.status).to.equal(200);
       expect(res.body.replace(/\s*/g, '')).to.equal(JSON.stringify(data));
       done();
-    }).catch(done);
+    })["catch"](done);
   });
 
-  it('deleteRequest能够正确发送http DELETE请求,接收请求', function(done) {
-    co(function* () {
+  it('deleteRequest能够正确发送http DELETE请求,接收请求', function(done){
+    co(function * (){
       const res = yield deleteRequest(localPath);
       expect(res.status).to.equal(200);
       expect(res.body.replace(/\s*/g, '')).to.equal(JSON.stringify({
         message: 'ok',
       }));
       done();
-    }).catch(done);
+    })["catch"](done);
   });
 
-  it('deleteRequest能够正确发送https DELETE请求,接收请求', function(done) {
-    co(function* () {
+  it('deleteRequest能够正确发送https DELETE请求,接收请求', function(done){
+    co(function * (){
       const res = yield deleteRequest(httpsLocalPath);
       expect(res.status).to.equal(200);
       expect(res.body.replace(/\s*/g, '')).to.equal(JSON.stringify({
         message: 'ok',
       }));
       done();
-    }).catch(done);
+    })["catch"](done);
   });
 
-  it('getLogger工作正常', function(done) {
+  it('getLogger工作正常', function(done){
     const app = new Koa();
-    app.use(function*(next) {
-      function getLogger(type) {
+    app.use(function * (next){
+      function getLogger(type){
         let user = 'unknown';
-        try {
+        try{
           user = this.session.cas.user;
         } catch (e) {} // eslint-disable-line
 
-        if (!console[type]) {
+        if(!console[type]){
           console.error('invalid console type', type);
           type = 'log';
         }
@@ -424,9 +424,9 @@ describe('utils单元测试', function() {
       return yield next;
     });
 
-    app.use(function*(next) {
+    app.use(function * (next){
       let logger = getLogger(this, {
-        logger(ctx, type) {
+        logger(ctx, type){
           return ctx.getLogger(type);
         },
       });
@@ -445,19 +445,19 @@ describe('utils单元测试', function() {
       return yield next;
     });
 
-    app.use(function* (next) {
-      if (this.path === '/') {
+    app.use(function * (next){
+      if(this.path === '/'){
         this.body = 'ok';
         return;
       }
       return yield next;
     });
     let server;
-    co(function* () {
-      yield new Promise((r, j) => server = app.listen(3004, (err) => err ? j(err) : r()));
+    co(function * (){
+      yield new Promise((r, j) => server = app.listen(3004, err => err ? j(err) : r()));
       yield getRequest('http://localhost:3004/');
-      yield new Promise((r, j) => server.close((err) => err ? j(err) : r()));
+      yield new Promise((r, j) => server.close(err => err ? j(err) : r()));
       done();
-    }).catch(done);
+    })["catch"](done);
   });
 });

@@ -1,10 +1,10 @@
-function setCookies(headers) {
-  if (!headers) headers = {};
+function setCookies(headers){
+  if(!headers){headers = {};}
 
   const cookies = {};
 
-  if ('set-cookie' in headers) {
-    headers['set-cookie'].forEach(function(cookie) {
+  if('set-cookie' in headers){
+    headers['set-cookie'].forEach(function(cookie){
       const cookieArr = cookie.split(';');
 
       const keyValuePair = cookieArr[0].split('=');
@@ -16,12 +16,12 @@ function setCookies(headers) {
   return cookies;
 }
 
-function getCookies(cookies) {
-  if (!cookies) cookies = {};
+function getCookies(cookies){
+  if(!cookies){cookies = {};}
 
   const cookieArr = [];
 
-  for (const i in cookies) {
+  for(const i in cookies){
     cookieArr.push(`${i}=${cookies[i]}`);
   }
 

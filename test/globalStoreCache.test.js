@@ -1,15 +1,15 @@
 const globalStoreCache = require('../lib/globalStoreCache');
-const { expect } = require('chai');
+const{expect} = require('chai');
 
-describe('globalStoreCache工作正常', function() {
+describe('globalStoreCache工作正常', function(){
 
   const key = 'key';
   const value = 'value';
 
-  it('功能一切正常', function() {
+  it('功能一切正常', function(){
 
     globalStoreCache.set(key, value);
-    expect(globalStoreCache.contains(key)).to.be.true;
+    expect(globalStoreCache.contains(key)).to.be["true"];
     expect(globalStoreCache.get(key)).to.equal(value);
 
     globalStoreCache.remove(key);
@@ -22,11 +22,11 @@ describe('globalStoreCache工作正常', function() {
     globalStoreCache.clear();
     all = globalStoreCache.getAll();
     let isEmpty = true;
-    for (const i in all) {
+    for(const i in all){
       isEmpty = false;
       break;
     }
-    expect(isEmpty).to.equal.true;
+    expect(isEmpty).to.equal["true"];
   });
 
 
