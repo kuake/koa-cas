@@ -1,9 +1,9 @@
 const Koa = require('koa');
-const{expect} = require('chai');
+const {expect} = require('chai');
 const casServerFactory = require('./lib/casServer');
 const casClientFactory = require('./lib/casClientFactory');
 const handleCookies = require('./lib/handleCookie');
-const{logger} = require('./lib/test-utils');
+const {logger} = require('./lib/testUtils');
 const supertest = require('supertest');
 const co = require('co');
 

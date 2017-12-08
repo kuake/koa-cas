@@ -82,8 +82,8 @@
     "array-callback-return":0,
     // 强制把变量的使用限制在其定义的作用域范围内
     "block-scoped-var": 0,
-    // 限制圈复杂度，也就是类似if else能连续接多少个
-    "complexity": [2, 20],
+    // 限制圈复杂度，也就是类似if else能连续接多少个, 默认：[2, 20]
+    "complexity": [2, 40],
     //  要求 return 语句要么总是指定返回的值，要么不指定
     "consistent-return": 0,
     // 强制所有控制语句使用一致的括号风格
@@ -101,6 +101,11 @@
     "dot-notation": [2, { "allowKeywords": false }],
     // 使用 === 替代 == allow-null允许null和undefined==
     "eqeqeq": [0, "allow-null"],
+
+    //no-return-await
+    //TODO
+    "no-await-in-loop": 0,
+
     // 要求 for-in 循环中有一个 if 语句
     "guard-for-in": 0,
     // 禁用 alert、confirm 和 prompt
@@ -328,7 +333,10 @@
     "jsx-quotes":0,
 
     // 强制在关键字前后不使用空格 by zzl
-    "keyword-spacing": ["error", {"after": false, "before": false}],
+    "keyword-spacing": ["error", {"after": false, "before": false, "overrides": {
+      "return": {"after": true},
+      "const": {"after": true}
+    }}],
 
     // 强制最大行数
     "max-lines":0,

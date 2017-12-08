@@ -11,7 +11,6 @@ const clearRestletTGTs = require('./lib/clearRestletTGTs');
 const url = require('url');
 const deprecate = require('deprecate');
 const is = require('is-type-of');
-const co = require('co');
 
 const DEFAULT_OPTIONS = {
   ignore: [],
@@ -48,9 +47,7 @@ const DEFAULT_OPTIONS = {
   restletIntegrationIsUsingCache: true,
 };
 
-
 class ConnectCas{
-
   constructor(options){
     /* istanbul ignore if */
     if(!(this instanceof ConnectCas)){return new ConnectCas(options);}
@@ -88,13 +85,12 @@ class ConnectCas{
   core(){
     const options = this.options;
     const that = this;
-    return function * coreMiddleware(next){
-      const ctx = this;
+    return async function coreMiddleware(ctx, next){
       if(!ctx.sessionStore){throw new Error('You must setup a session store before you can use CAS client!');}
       if(!ctx.session){throw new Error(`Unexpected ctx.session ${ctx.session}`);}
 
       if(options.hooks && is["function"](options.hooks.before)){
-        yield options.hooks.before(this, next);
+        await options.hooks.before(ctx, next);
       }
 
       const logger = utils.getLogger(ctx, options);
@@ -104,9 +100,10 @@ class ConnectCas{
         if(!options.paths.restletIntegration){
           logger.warn('options.restletIntegration is set, but options.paths.restletIntegration is undefined! Maybe you forget to set all your paths.');
         }else{
-          ctx.clearRestlet = co.wrap(function * (){
-            return yield clearRestletTGTs.bind(null, options, logger);
-          });
+          ctx.clearRestlet = async function(){
+            const ret = await clearRestletTGTs.bind(null, options, logger);
+            return ret;
+          };
 
           ctx.request.clearRestlet = () => {
             deprecate('ctx.request.clearRestlet is deprecated, please use \'ctx.clearResetlet\'');
@@ -138,7 +135,7 @@ class ConnectCas{
        * @param {Function}  callback
        * @returns {*}
        */
-      ctx.getProxyTicket = co.wrap(function * (targetService, proxyOptions = {}){
+      ctx.getProxyTicket = async function(targetService, proxyOptions = {}){
         if(typeof proxyOptions === 'function'){
           proxyOptions = { // eslint-disable-line no-param-reassign
             disableCache: false,
@@ -165,13 +162,13 @@ class ConnectCas{
             restletIntegrateParams = options.restletIntegration[matchedRestletIntegrateRule].params;
           }
         }
-        const pt = matchedRestletIntegrateRule ? yield getProxyTicketThroughRestletReq.call(that, ctx, targetService, {
+        const pt = matchedRestletIntegrateRule ? await getProxyTicketThroughRestletReq.call(that, ctx, targetService, {
           name: matchedRestletIntegrateRule,
           params: restletIntegrateParams,
           cache: options.restletIntegrationIsUsingCache,
-        }) : yield getProxyTicket.call(that, ctx, proxyOptions);
+        }) : await getProxyTicket.call(that, ctx, proxyOptions);
         return pt;
-      });
+      };
 
       ctx.request.getProxyTicket = () => {
         deprecate('"ctx.request.getProxyTicket" is deprecated, please use "ctx.getProxyTicket"');
@@ -182,48 +179,54 @@ class ConnectCas{
       if(matchedRestletIntegrateRule){
         logger.info('Match restlet integration rule: ', matchedRestletIntegrateRule);
         ctx.sessionSave = true; // generate a new session to keep sessionid in cookie
-        yield afterHook();
-        return yield next;
+        await afterHook();
+        const ret = await next();
+        return ret;
       }
 
       if(utils.shouldIgnore(ctx, options)){
-        yield afterHook();
-        return yield next;
+        await afterHook();
+        const ret = await next();
+        return ret;
       }
-      if(this.method === 'GET'){
-        switch(this.path){
+
+      if(ctx.method === 'GET'){
+        let ret = null;
+        switch(ctx.path){
           case options.paths.validate:
-            return yield validate(ctx, afterHook, options);
+            ret = await validate(ctx, afterHook, options);
+            return ret;
           case that.proxyCallbackPathName:
-            return yield proxyCallback(ctx, afterHook, options);
+            ret = await proxyCallback(ctx, afterHook, options);
+            return ret;
           default:
             break;
         }
-      }else if(this.method === 'POST' && this.path === options.paths.validate && options.slo){
-        return yield slo(ctx, afterHook, options);
+      }else if(ctx.method === 'POST' && ctx.path === options.paths.validate && options.slo){
+        const ret = await slo(ctx, afterHook, options);
+        return ret;
       }
-      return yield authenticate(ctx, afterHook, next, options);
+      const ret = await authenticate(ctx, afterHook, next, options);
+      return ret;
     };
   }
 
-  logout(){
+  logout(ctx){
     const options = this.options;
-
-    return function * (){
-      if(!this.session){
-        return this.redirect('/');
+    return new Promise((resolve, reject) => {
+      if(!ctx.session){
+        return ctx.redirect('/');
       }
       // Forget our own login session
-
-      if(this.session.destroy){
-        yield this.session.destroy();
+      if(ctx.session.destroy){
+        resolve(ctx.session.destroy());
       }else{
         // Cookie-based sessions have no destroy()
-        this.session = null;
+        ctx.session = null;
       }
       // Send the user to the official campus-wide logout URL
-      return this.redirect(utils.getPath('logout', options));
-    };
+      resolve(ctx.redirect(utils.getPath('logout', options)));
+    });
   }
 
   getPath(name){

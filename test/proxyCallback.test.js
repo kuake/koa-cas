@@ -1,8 +1,8 @@
 const Koa = require('koa');
 const co = require('co');
 const supertest = require('supertest');
-const{logger, hooks} = require('./lib/test-utils');
-const{expect} = require('chai');
+const {logger, hooks} = require('./lib/testUtils');
+const {expect} = require('chai');
 const casServerFactory = require('./lib/casServer');
 const casClientFactory = require('./lib/casClientFactory');
 const handleCookies = require('./lib/handleCookie');
@@ -79,7 +79,7 @@ describe('proxyCallback符合预期', function(){
   it('啥参数都不带直接调用, 或是参数不合法(无pgtIou或pgtId) 直接响应200', function(done){
     hookAfterCasConfig = function * (ctx, next){
       if(ctx.path === '/cas/proxyCallback'){
-        const{pgtIou} = ctx.query;
+        const {pgtIou} = ctx.query;
         if(pgtIou){
           const pgtInfo = yield ctx.sessionStore.get(pgtIou);
           expect(pgtInfo).to.be.empty;

@@ -1,8 +1,8 @@
 const Koa = require('koa');
 const co = require('co');
 const supertest = require('supertest');
-const{logger, hooks} = require('./lib/test-utils');
-const{expect} = require('chai');
+const {logger, hooks} = require('./lib/testUtils');
+const {expect} = require('chai');
 const casClientFactory = require('./lib/casClientFactory');
 const PTStore = require('../lib/ptStroe');
 const handleCookies = require('./lib/handleCookie');
@@ -101,7 +101,7 @@ describe('PTStore功能正常', function(){
   it('未初始化, 直接get, remove, clear, 不会出现异常', function(done){
     ptStore = new PTStore({
       logger(){
-        return() => {};
+        return () => {};
       },
     });
 

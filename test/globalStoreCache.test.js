@@ -1,5 +1,5 @@
 const globalStoreCache = require('../lib/globalStoreCache');
-const{expect} = require('chai');
+const {expect} = require('chai');
 
 describe('globalStoreCache工作正常', function(){
 

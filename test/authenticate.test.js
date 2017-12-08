@@ -1,12 +1,12 @@
 const Koa = require('koa');
 const casClientFactory = require('./lib/casClientFactory');
 const supertest = require('supertest');
-const{
+const {
   hooks,
   logger,
   sessionStAndPgtHook,
   sessionStHook,
-} = require('./lib/test-utils');
+} = require('./lib/testUtils');
 
 describe('校验判断登陆状态', function(){
   let server;

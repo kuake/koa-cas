@@ -1,8 +1,8 @@
 const Koa = require('koa');
 const co = require('co');
 const supertest = require('supertest');
-const{logger, hooks} = require('./lib/test-utils');
-const{expect} = require('chai');
+const {logger, hooks} = require('./lib/testUtils');
+const {expect} = require('chai');
 const casServerFactory = require('./lib/casServer');
 const casClientFactory = require('./lib/casClientFactory');
 const handleCookies = require('./lib/handleCookie');
@@ -255,7 +255,7 @@ describe('validate是否符合预期', function(){
           proxyCallback: '',
         },
         redirect(ctx) { // eslint-disable-line
-          return'/helloworld';
+          return '/helloworld';
         },
         logger,
       });

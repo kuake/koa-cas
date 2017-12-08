@@ -4,7 +4,7 @@ const convert = require('koa-convert');
 const bodyParser = require('koa-bodyparser');
 const cookie = require('koa-cookie');
 const json = require('koa-json');
-const{
+const {
   toArray,
   getPath,
   isMatchRule,
@@ -16,7 +16,7 @@ const{
   deleteRequest,
   getLogger,
 } = require('../lib/utils');
-const{expect} = require('chai');
+const {expect} = require('chai');
 const http = require('http');
 const https = require('https');
 const fs = require('fs');
@@ -44,30 +44,30 @@ describe('utils单元测试', function(){
     app.use(bodyParser());
     app.use(convert.back(json()));
 
-    app.use(function * (next){
-      if(this.path === '/'){
-        switch(this.method){
+    app.use(async(ctx, next) => {
+      if(ctx.path === '/'){
+        switch(ctx.method){
           case'GET':
-            this.body = {
+            ctx.body = {
               message: 'ok',
             };
             return;
           case'DELETE':
-            this.body = {
+            ctx.body = {
               message: 'ok',
             };
             return;
           case'POST':
-            this.body = this.request.body;
+            ctx.body = ctx.request.body;
             return;
           default:
-            this.body = {
+            ctx.body = {
               message: 'Not Found',
             };
 
         }
       }else{
-        return yield next;
+        await next();
       }
     });
 
