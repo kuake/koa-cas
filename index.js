@@ -215,7 +215,7 @@ class ConnectCas{
     const options = this.options;
     return new Promise((resolve, reject) => {
       if(!ctx.session){
-        return ctx.redirect('/');
+        resolve(ctx.redirect('/'));
       }
       // Forget our own login session
       if(ctx.session.destroy){
