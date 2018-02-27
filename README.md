@@ -1,7 +1,7 @@
 [![Build Status](https://travis-ci.org/allanfish/koa-cas.svg?branch=master)](https://travis-ci.org/allanfish/koa-cas)
 [![Coverage Status](https://coveralls.io/repos/github/allanfish/koa-cas/badge.svg?branch=master)](https://coveralls.io/github/allanfish/koa-cas?branch=master)
 
-# koa-cas2
+# koa2-cas2
 
 A complete implement of CAS Client middleware for Express/Connect, support CAS 2.0+ protocol.
 
