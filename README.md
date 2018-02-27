@@ -11,6 +11,8 @@ We suppose you are already familiar with the CAS protocol, if not, please read t
 
 [中文文档](https://github.com/allanfish/koa-cas/blob/master/README.zh.md)
 
+For easy way to use by myself, I update https://github.com/allanfish/koa-cas.git and republish
+
 ## Install
 
     npm install koa-cas2

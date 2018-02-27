@@ -1,13 +1,13 @@
 {
   "name": "koa2-cas2",
-  "version": "2.2.10",
+  "version": "2.2.11",
   "main": "index.js",
   "license": "MIT",
   "author": "allanfish",
   "homepage": "https://github.com/allanfish/koa-cas",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/allanfish/koa-cas.git"
+    "url": "git+https://github.com/kuake/koa-cas.git"
   },
   "engines": {
     "node": ">=8.9.0"
@@ -18,12 +18,16 @@
     "test": "istanbul cover -x 'example/**' _mocha -- -R spec"
   },
   "bugs": {
-    "url": "https://github.com/allanfish/koa-cas/issues"
+    "url": "https://github.com/kuake/koa-cas/issues"
   },
   "maintainers": [
     {
       "email": "googleyufei@qq.com",
       "name": "allanfish"
+    },
+    {
+      "email": "zzlw3c@163.com",
+      "name": "jacky"
     }
   ],
   "dependencies": {
