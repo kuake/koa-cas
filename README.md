@@ -14,6 +14,8 @@ We suppose you are already familiar with the CAS protocol, if not, please read t
 ## Install
 
     npm install koa-cas2
+    //new name(async/wait support):
+    npm install koa2-cas2
 
 ## Feature
 
